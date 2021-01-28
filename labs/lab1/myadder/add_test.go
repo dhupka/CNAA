@@ -8,5 +8,5 @@ func TestAdd(t *testing.T) {
 	if want != got {
 		t.Errorf("Error in myadder.Add; Want 7, Got %d", got)
 	}
-	2
+
 }
