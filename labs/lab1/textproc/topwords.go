@@ -5,17 +5,53 @@
 
 // Note: You should use `checkError` to handle potential errors.
 
+//Damian Hupka
+//Cloud Native Application Architecture - ECGR 4090-Y04 Sp.21
+//02/03/21
+
 package textproc
 
 import (
 	"fmt"
 	"log"
 	"sort"
+	"os"
+	"bufio"
+
 )
 
 func topWords(path string, K int) []WordCount {
 	// Your code here.....
+	file, err := os.Open(path)
+	checkError(err)
 
+	//Initializing scanner
+	scanner := bufio.NewScanner(file)
+
+	//Returns string with whitespace split and trailing spaces removed
+	scanner.Split(bufio.ScanWords)
+
+	//Initializing map to store key valued pairs of words and counts
+	wordMap := make(map[string]int)
+
+	//Initializing slice to return using WordCount struct 
+	wordSlice := make([]WordCount, 0 )
+
+	//Reading file line by line and adding word occurences to map
+	for scanner.Scan(){
+		word := scanner.Text()
+		wordMap[word]++
+	}
+
+	//Adding wordMap entries to WordCount slice 
+	for key, value := range wordMap {
+		wordSlice = append(wordSlice, WordCount{key, value})
+	}
+	//Sorting output slice
+	sortWordCounts(wordSlice)
+
+	//Returning top K word frequencies (3 in the test case)
+	return wordSlice[:K]
 }
 
 //--------------- DO NOT MODIFY----------------!
