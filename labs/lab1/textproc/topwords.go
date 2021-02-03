@@ -29,6 +29,7 @@ func topWords(path string, K int) []WordCount {
 	scanner := bufio.NewScanner(file)
 
 	//Returns string with whitespace split and trailing spaces removed
+	//Split will default to scan lines, this could similarly be used but adding an additional space argument 
 	scanner.Split(bufio.ScanWords)
 
 	//Initializing map to store key valued pairs of words and counts
@@ -39,7 +40,9 @@ func topWords(path string, K int) []WordCount {
 
 	//Reading file line by line and adding word occurences to map
 	for scanner.Scan(){
+		//Most recent token generated as a string
 		word := scanner.Text()
+		//Stores initial key word and will increment value to one, etc.
 		wordMap[word]++
 	}
 
