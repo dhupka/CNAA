@@ -25,6 +25,8 @@ func topWords(path string, K int) []WordCount {
 	file, err := os.Open(path)
 	checkError(err)
 
+	defer file.Close()
+
 	//Initializing scanner
 	scanner := bufio.NewScanner(file)
 
