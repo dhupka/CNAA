@@ -5,7 +5,7 @@ ECGR 4090 Spring 2021 Cloud Native Application Architecture
 Work on readme -- basic  
 
 ### Lab 2
-Implementing the Get() and Put() methods for the LRUCachebased on interfaces.  
+Implementing the Get() and Put() methods for the LRUCache based on interfaces.  
 
 1.) Get() will check if the key exists in the cache, and append to the end of the queue (most recently used), and return the value of the key.  
 
