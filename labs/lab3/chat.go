@@ -13,7 +13,9 @@ import (
 	"net"
 )
 
-type client chan<- string // an outgoing message channel
+type client struct { 
+	outgoing chan<- string // an outgoing message channel
+	name string
 
 var (
 	entering = make(chan client)
