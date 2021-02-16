@@ -6,6 +6,7 @@ package lru
 
 import ( 
 	"errors"
+	"fmt"
 )
 
 type Cacher interface {
@@ -25,37 +26,41 @@ func NewCache(size int) Cacher {
 }
 
 func (lru *lruCache) Get(key interface{}) (interface{}, error) {
-	// Your code here....
-	
-	//Check if key exists in the cache, if so appends to queue (most recently used)
-	if node, found := lru.cache[key.(string)]; found {
-		lru.queue = append(lru.queue, node)
-		return lru.cache[key.(string)], nil					//Returning value of the key
-	}
-	return "-1", errors.New("Key does not exist.")
+    if _, ok := lru.cache[key.(string)]; ok {
+        if lru.remaining == 0 {
+            lru.queue[lru.size-1] = key.(string) //add to queue as highest available index
+        } else {
+            lru.queue[lru.size-lru.remaining] = key.(string) //add to queue as current index
+        }
+        return lru.cache[key.(string)], nil //return the value at the given key
+    }
 
+    return "-1", errors.New("error")
 }
 
 func (lru *lruCache) Put(key, val interface{}) error {
-	// Your code here....
-	//Check if key exists in cache, if so appends to queue (most recently used)
-	if _, found := lru.cache[key.(string)]; found {
-		lru.queue = append(lru.queue,lru.cache[key.(string)])
-		lru.cache[key.(string)] = val.(string)				//Updating cache value if key exists
-	} else {
-		if lru.size == lru.remaining { 						//Evicting least recently used if cache is full (from queue and cache), reducing size of cache
-			deleteIndex := lru.queue[0]
-			lru.qDel(deleteIndex)							
-			lru.size--										//Reducing size of cache as item removed
-			delete(lru.cache,deleteIndex)
-		}
+    if lru.remaining < 0 {
+        return errors.New("Capacity error occurred, the cache is already full")
+    }
 
-	lru.queue = append(lru.queue,lru.cache[key.(string)]) 	//If key does not exist, appending it to queue (most recently used)
-	lru.size++												//Increasing cache size as item added
-	lru.cache[key.(string)] = val.(string)					//Updating cache value for non-existing key
-	return nil	
-	}
-	return errors.New("ERROR.")
+    if lru.remaining == 0 {
+        delete(lru.cache, lru.queue[0])   //delete the LRU from the cache
+        lru.qDel(lru.queue[0])            //delete the LRU(head) from queue (which reduces queue slice size by one)
+        lru.queue = append(lru.queue, "") //append empty string to queue to make it the original size again
+        fmt.Print("Empty queue index amended: ")
+        fmt.Println(lru.queue)
+        lru.queue[lru.size-1] = key.(string) //now add the key to the tail of queue
+        fmt.Print("Now the queue is: ")
+        fmt.Println(lru.queue)
+    } else {
+        lru.queue[lru.size-lru.remaining] = key.(string) //if capacity isn't max, just add to slice
+    }
+    if lru.remaining > 0 {
+        lru.remaining--
+    }
+    lru.cache[key.(string)] = val.(string) //insert into cache
+
+    return nil
 }
 
 
