@@ -11,11 +11,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 )
 
 type client struct { 
-	outgoing chan<- string // an outgoing message channel
-	name string
+	//Converting type client
+	clientChan chan<- string // an outgoing message channel
+	clientName string
+}
 
 var (
 	entering = make(chan client)
@@ -48,27 +51,48 @@ func broadcaster() {
 			// Broadcast incoming message to all
 			// clients' outgoing message channels.
 			for cli := range clients {
-				cli <- msg
+				cli.clientChan <- msg
 			}
 
 		case cli := <-entering:
 			clients[cli] = true
+			//Displays current list of chatters to new client
+			cli.clientChan <- "Current chatters: "
+			for c := range clients {
+				cli.clientChan <- c.clientName
+			}
 
 		case cli := <-leaving:
 			delete(clients, cli)
-			close(cli)
+			close(cli.clientChan)
 		}
 	}
 }
 
 func handleConn(conn net.Conn) {
+	//Instantiating client
+	var cli client
 	ch := make(chan string) // outgoing client messages
 	go clientWriter(conn, ch)
 
-	who := conn.RemoteAddr().String()
+	//Setting username
+	inputName := bufio.NewReader(conn)
+	fmt.Fprintln(conn, "Enter name: ")
+	name, _ := inputName.ReadString('\n')
+	name = strings.TrimSuffix(name, "\n")
+	who := name
+
+	//Assigning outgoing message channel variable
+	cli.clientChan = ch
+	//Assigning client name variable 
+	cli.clientName = who
+
+	//Sending name to channel
 	ch <- "You are " + who
+	//Sending name to messages case to be broadcast within the broadcast function
 	messages <- who + " has arrived"
-	entering <- ch
+	//Sending client struct to entering case to be broadcast within the broadcast function
+	entering <- cli
 
 	input := bufio.NewScanner(conn)
 	for input.Scan() {
@@ -76,7 +100,7 @@ func handleConn(conn net.Conn) {
 	}
 	// NOTE: ignoring potential errors from input.Err()
 
-	leaving <- ch
+	leaving <- cli
 	messages <- who + " has left"
 	conn.Close()
 }
