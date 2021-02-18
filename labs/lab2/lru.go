@@ -25,7 +25,10 @@ func NewCache(size int) Cacher {
 	return &lruCache{size: size, remaining: size, cache: make(map[string]string), queue: make([]string, size)}
 }
 
+
+//We have to do this remaining stuff because append _, _, _, key, key, key
 func (lru *lruCache) Get(key interface{}) (interface{}, error) {
+    //Looking if key is found, returns key or -1 if not found
     if _, ok := lru.cache[key.(string)]; ok {
         if lru.remaining == 0 {
             lru.queue[lru.size-1] = key.(string) //add to queue as highest available index
@@ -40,9 +43,10 @@ func (lru *lruCache) Get(key interface{}) (interface{}, error) {
 
 func (lru *lruCache) Put(key, val interface{}) error {
     if lru.remaining < 0 {
-        return errors.New("Capacity error occurred, the cache is already full")
+        return errors.New("shoulnd't be here")
     }
 
+    //If size = remaining, deletes queue element 0 from cache and queue, adds 
     if lru.remaining == 0 {
         delete(lru.cache, lru.queue[0])   //delete the LRU from the cache
         lru.qDel(lru.queue[0])            //delete the LRU(head) from queue (which reduces queue slice size by one)
@@ -55,7 +59,7 @@ func (lru *lruCache) Put(key, val interface{}) error {
     } else {
         lru.queue[lru.size-lru.remaining] = key.(string) //if capacity isn't max, just add to slice
     }
-    if lru.remaining > 0 {
+    if lru.remaining > 0 { //Doing this so wont reach the error throwing, ensures non-negative here
         lru.remaining--
     }
     lru.cache[key.(string)] = val.(string) //insert into cache
