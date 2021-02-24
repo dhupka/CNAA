@@ -15,7 +15,7 @@ func main() {
 	http.HandleFunc("/price", db.price)
 	http.HandleFunc("/delete", db.delete)
 	http.HandleFunc("/create", db.create)
-	//http.HandleFunc("/update", db.update)
+	http.HandleFunc("/update", db.update)
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }
 
@@ -45,6 +45,7 @@ func (db database) price(w http.ResponseWriter, req *http.Request) {
 	mutex.Unlock()
 }
 
+//Create Handler
 func (db database) create(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
 	price := req.URL.Query().Get("price")
@@ -58,35 +59,38 @@ func (db database) create(w http.ResponseWriter, req *http.Request) {
 		mutex.Lock() 
 		db[item] = dollars(p)
 		mutex.Unlock()
-		fmt.Fprint(w, "Item: ", item, ". Item price: ", p)
+		fmt.Fprint(w, "Item: ", item, ". Item price: ", p, "\n")
 	}
 }
 
-// func (db database) update(w http.ResponseWriter, req *http.Request) {
-// 	item := req.URL.Query().Get("item")
-// 	price := req.URL.Query().Get("price")
+//Update Handler
+func (db database) update(w http.ResponseWriter, req *http.Request) {
+	item := req.URL.Query().Get("item")
+	price := req.URL.Query().Get("price")
 
-// 	p, err := strconv.ParseFloat(price, 32)
-// 	if err != nil {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		fmt.Fprintf(w, "Price: %v\n", err)
-// 		return
-// 	}
-// 	if _, found := db[item]; found {
-// 		mutex.Lock()
-// 		db[item] = dollars(p)
-// 		mutex.Unlock()
-// 		fmt.Fprint(w, "Updated item: ", item, ". Item price: ", p)
-// 	} else {
-// 		w.WriteHeader(http.StatusNotFound) // 404: item not in database
-// 		fmt.Fprintf(w, "no such item: %q\n", item)
-// 	}
-// }
+	p, err := strconv.ParseFloat(price, 32)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Price: %v\n", err)
+		return
+	}
+	if _, found := db[item]; found {
+		mutex.Lock()
+		db[item] = dollars(p)
+		mutex.Unlock()
+		fmt.Fprint(w, "Updated item: ", item, ". Item price:  ", p, " \n") 
+	} else {
+		w.WriteHeader(http.StatusNotFound) // 404: item not in database
+		fmt.Fprintf(w, "no such item: %q\n", item)
+	}
+}
 
 func (db database) delete(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
 	if _, found := db[item]; found {
+		mutex.Lock()
 		delete(db, item)
+		mutex.Unlock()
 		fmt.Fprintf(w,"Deleted item %s\n", item)
 	} else {
 		w.WriteHeader(http.StatusNotFound) // 404: item not in database
