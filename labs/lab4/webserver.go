@@ -42,7 +42,7 @@ func (db database) price(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusNotFound) // 404: item not in database
 		fmt.Fprintf(w, "no such item: %q\n", item)
 	}
-	mutex.Unlock()
+	mutex.RUnlock()
 }
 
 //Create Handler
