@@ -56,6 +56,7 @@ func broadcaster() {
 
 		case cli := <-entering:
 			clients[cli] = true
+
 			//Displays current list of chatters to new client
 			cli.clientChan <- "Current chatters: "
 			for c := range clients {
@@ -80,28 +81,29 @@ func handleConn(conn net.Conn) {
 	fmt.Fprintln(conn, "Enter name: ")
 	name, _ := inputName.ReadString('\n')
 	name = strings.TrimSuffix(name, "\n")
-	who := name
+	
 
 	//Assigning outgoing message channel variable
 	cli.clientChan = ch
+	
 	//Assigning client name variable 
-	cli.clientName = who
+	cli.clientName = name
 
 	//Sending name to channel
-	ch <- "You are " + who
+	ch <- "You are " + name
 	//Sending name to messages case to be broadcast within the broadcast function
-	messages <- who + " has arrived"
+	messages <- name + " has arrived"
 	//Sending client struct to entering case to be broadcast within the broadcast function
 	entering <- cli
 
 	input := bufio.NewScanner(conn)
 	for input.Scan() {
-		messages <- who + ": " + input.Text()
+		messages <- name + ": " + input.Text()
 	}
 	// NOTE: ignoring potential errors from input.Err()
 
 	leaving <- cli
-	messages <- who + " has left"
+	messages <- name + " has left"
 	conn.Close()
 }
 
