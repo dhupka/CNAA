@@ -50,6 +50,7 @@ func (db database) create(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
 	price := req.URL.Query().Get("price")
 
+	//Checking for error on price 
 	p, err := strconv.ParseFloat(price, 32)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -63,27 +64,27 @@ func (db database) create(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-//Update Handler
-func (db database) update(w http.ResponseWriter, req *http.Request) {
-	item := req.URL.Query().Get("item")
-	price := req.URL.Query().Get("price")
+// //Update Handler
+// func (db database) update(w http.ResponseWriter, req *http.Request) {
+// 	item := req.URL.Query().Get("item")
+// 	price := req.URL.Query().Get("price")
 
-	p, err := strconv.ParseFloat(price, 32)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, "Price: %v\n", err)
-		return
-	}
-	if _, found := db[item]; found {
-		mutex.Lock()
-		db[item] = dollars(p)
-		mutex.Unlock()
-		fmt.Fprint(w, "Updated item: ", item, ". Item price:  ", p, " \n") 
-	} else {
-		w.WriteHeader(http.StatusNotFound) // 404: item not in database
-		fmt.Fprintf(w, "no such item: %q\n", item)
-	}
-}
+// 	p, err := strconv.ParseFloat(price, 32)
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		fmt.Fprintf(w, "Price: %v\n", err)
+// 		return
+// 	}
+// 	if _, found := db[item]; found {
+// 		mutex.Lock()
+// 		db[item] = dollars(p)
+// 		mutex.Unlock()
+// 		fmt.Fprint(w, "Updated item: ", item, ". Item price:  ", p, " \n") 
+// 	} else {
+// 		w.WriteHeader(http.StatusNotFound) // 404: item not in database
+// 		fmt.Fprintf(w, "no such item: %q\n", item)
+// 	}
+// }
 
 func (db database) delete(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
