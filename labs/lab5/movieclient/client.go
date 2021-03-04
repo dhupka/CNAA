@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"labs/lab5/movieapi"
+
 	"google.golang.org/grpc"
 )
 
@@ -15,6 +16,11 @@ const (
 	address      = "localhost:50051"
 	defaultTitle = "Pulp fiction"
 )
+
+var newTitle = "Lion King"
+var newYear int32 = 1994
+var newDirector = "Rob Minkoff"
+var newCast = []string{"James Earl Jones", "Jeremy Irons"}
 
 func main() {
 	// Set up a connection to the server.
@@ -38,4 +44,12 @@ func main() {
 		log.Fatalf("could not get movie info: %v", err)
 	}
 	log.Printf("Movie Info for %s %d %s %v", title, r.GetYear(), r.GetDirector(), r.GetCast())
+
+	w, err := c.SetMovieInfo(ctx, &movieapi.MovieData{Title: newTitle, Year: newYear, Director: newDirector, Cast: newCast})
+
+	log.Print("Status of set:" + w.GetCode())
+
+	q, err := c.GetMovieInfo(ctx, &movieapi.MovieRequest{Title: newTitle})
+
+	log.Printf("Movie Info for %s %d %s %v", newTitle, q.GetYear(), q.GetDirector(), q.GetCast())
 }

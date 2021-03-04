@@ -3,12 +3,14 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"labs/lab5/movieapi"
 	"log"
 	"net"
 	"strconv"
 	"strings"
 
-	"labs/lab5/movieapi"
 	"google.golang.org/grpc"
 )
 
@@ -42,9 +44,26 @@ func (s *server) GetMovieInfo(ctx context.Context, in *movieapi.MovieRequest) (*
 		reply.Cast = append(reply.Cast, cast...)
 
 	}
-
 	return reply, nil
-
+}
+func (s *server) SetMovieInfo(ctx context.Context, message *movieapi.MovieData) (*movieapi.Status, error) {
+	title := message.GetTitle()
+	year := message.GetYear()
+	director := message.GetDirector()
+	cast := message.GetCast()
+	status := &movieapi.Status{}
+	yearS := fmt.Sprint(year)
+	castS := strings.Join(cast, ",")
+	mapValue := make([]string, 0)
+	mapValue = append(mapValue, yearS, director, castS)
+	if val, ok := moviedb[title]; !ok {
+		_ = val
+		moviedb[title] = mapValue
+		status.Code = "success"
+		return status, nil
+	}
+	status.Code = "failure"
+	return status, errors.New("Movie already in db")
 }
 
 func main() {
