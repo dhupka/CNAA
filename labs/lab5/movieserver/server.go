@@ -56,8 +56,7 @@ func (s *server) SetMovieInfo(ctx context.Context, message *movieapi.MovieData) 
 	castS := strings.Join(cast, ",")
 	mapValue := make([]string, 0)
 	mapValue = append(mapValue, yearS, director, castS)
-	if val, ok := moviedb[title]; !ok {
-		_ = val
+	if _, ok := moviedb[title]; !ok {
 		moviedb[title] = mapValue
 		status.Code = "success"
 		return status, nil
