@@ -1,12 +1,14 @@
-FROM golang:1.15
+FROM golang:1.15-alpine AS build
 
 WORKDIR /labs/
 COPY go.mod .
 COPY go.sum .
 RUN go mod download 
-COPY lab7/grpc-go ./lab7/grpc-go
-COPY lab7/movieapi ./lab7/movieapi
-COPY lab7/movieserver ./lab7/movieserver
-COPY lab7/movieclient ./lab7/movieclient
+WORKDIR /labs/
+COPY lab7/mongoserver.go /labs/
+RUN CGO_ENABLED=0 go build -o /bin/webserver
 
+FROM scratch
+COPY --from=build /bin/webserver /bin/webserver
+ENTRYPOINT ["/bin/webserver"]
 
