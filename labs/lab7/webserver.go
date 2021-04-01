@@ -16,7 +16,7 @@ func main() {
 	http.HandleFunc("/delete", db.delete)
 	http.HandleFunc("/create", db.create)
 	http.HandleFunc("/update", db.update)
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	log.Fatal(http.ListenAndServe(":8001", nil))
 }
 
 var mutex = &sync.RWMutex{}
@@ -27,6 +27,7 @@ type database map[string]dollars //databaseis a map of items and their dollar va
 
 func (db database) list(w http.ResponseWriter, req *http.Request) {
 	mutex.RLock()                 //locks for reading
+	fmt.Fprintf(w, "UPDATE HERE")
 	for item, price := range db { //print items in the database
 		fmt.Fprintf(w, "%s: %s\n", item, price)
 	}
