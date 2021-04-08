@@ -6,7 +6,7 @@ COPY go.sum .
 RUN go mod download 
 # COPY ./lab7/movieapi/ ./lab7/movieapi
 # COPY lab7/movieserver/server.go /labs
-COPY lab7/webserver.go /labs
+COPY lab7/mongoserver.go /labs
 RUN CGO_ENABLED=0 go build -o /bin/webserver
 
 FROM scratch

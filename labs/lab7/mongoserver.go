@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	mongodbEndpoint = "mongodb://172.17.0.2:27017" // Find this from the Mongo container
+	mongodbEndpoint = "mongodb://192.168.1.18:30818" // Find this from the Mongo container
 )
-
 
 type Post struct {
 	ID        primitive.ObjectID `bson:"_id"`
@@ -48,15 +47,14 @@ func main() {
 	http.HandleFunc("/delete", delete)
 	http.HandleFunc("/create", create)
 	http.HandleFunc("/update", update)
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	log.Fatal(http.ListenAndServe(":8001", nil))
 }
 
-
-//curl "http://localhost:8000/create?title=recipes&body=recipeSteps"
+//curl "http://$NODE_IP:$NODE_PORT/create?title=recipes&body=recipeSteps"
 func create(w http.ResponseWriter, req *http.Request) {
 	title := req.URL.Query().Get("title")
 	body := req.URL.Query().Get("body")
-	fmt.Println(title)
+	fmt.Fprintf(w, title)
 
 	res, _ := userDB.InsertOne(context.TODO(), &Post{
 		ID:        primitive.NewObjectID(),
@@ -65,11 +63,11 @@ func create(w http.ResponseWriter, req *http.Request) {
 		Body:      body,
 		CreatedAt: time.Now(),
 	})
-	fmt.Printf("inserted id: %s\n", res.InsertedID.(primitive.ObjectID).Hex())
+	fmt.Fprint(w, " was inserted\n", res.InsertedID.(primitive.ObjectID).Hex())
 
 }
 
-//curl "http://localhost:8000/list"
+//curl "http://$NODE_IP:$NODE_PORT/list"
 func list(w http.ResponseWriter, req *http.Request) {
 	cursor, err := userDB.Find(context.TODO(), bson.M{})
 	defer cursor.Close(context.TODO())
@@ -78,33 +76,35 @@ func list(w http.ResponseWriter, req *http.Request) {
 		if err = cursor.Decode(&results); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(results)
+		fmt.Fprint(w, results)
 	}
-	
+
 }
 
-//curl "http://localhost:8000/update?title=recipe&body=soupRecipes"
+//curl "http://$NODE_IP:$NODE_PORT/update?title=recipes&body=soupRecipes"
 func update(w http.ResponseWriter, req *http.Request) {
 	title := req.URL.Query().Get("title")
 	body := req.URL.Query().Get("body")
-	fmt.Println(title)
-	
+	fmt.Fprintf(w, "updating"+title)
+
 	after := options.After
 	opt := options.FindOneAndUpdateOptions{
 		ReturnDocument: &after,
 	}
 	filter := bson.M{"title": title}
-	update := bson.M{ "$set":bson.M{"body": body}}
-	res := userDB.FindOneAndUpdate(context.TODO(), filter,update, &opt)
+	update := bson.M{"$set": bson.M{"body": body}}
+	res := userDB.FindOneAndUpdate(context.TODO(), filter, update, &opt)
 	_ = res
 }
 
-//curl "http://localhost:8000/delete?title=socks"
+//curl "http://$NODE_IP:$NODE_PORT/delete?title=recipes"
 func delete(w http.ResponseWriter, req *http.Request) {
 	title := req.URL.Query().Get("title")
 	res, _ := userDB.DeleteOne(context.TODO(), bson.D{{"title", title}})
-	fmt.Printf("deleted docs: %s\n", res.DeletedCount)
+	_ = res
+	fmt.Fprintf(w, "deleted docs: "+title)
 }
+
 // func checkError(err error) {
 // 	if err != nil {
 // 		log.Fatal(err)

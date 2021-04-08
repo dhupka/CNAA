@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	port = ":50051"
+	port = ":8001"
 )
 
 // server is used to implement movieapi.MovieInfoServer
